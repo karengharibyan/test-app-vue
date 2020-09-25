@@ -1,18 +1,28 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <div v-if="$auth.check()">
+      {{userName}}
+    </div>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
 
 export default {
   name: 'Home',
-  components: {
-    HelloWorld
+  mounted(){
+    setTimeout(() => {
+      console.log(this.$auth.user())
+    }, 3000);
+  },
+  computed: {
+    userName: function(){
+      if(this.$auth.check()){
+        return `Hello ${this.$auth.user().first_name} ${this.$auth.user().last_name}`
+      }
+      return ""
+    }
   }
 }
 </script>
