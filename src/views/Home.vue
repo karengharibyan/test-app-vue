@@ -12,9 +12,6 @@
 export default {
   name: 'Home',
   mounted(){
-    setTimeout(() => {
-      console.log(this.$auth.user())
-    }, 3000);
   },
   computed: {
     userName: function(){

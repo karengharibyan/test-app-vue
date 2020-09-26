@@ -20,6 +20,18 @@ Vue.use(auth, {
     fetchUser: true,
     staySignedIn: true,
   },
+  registerData: {
+    url: 'auth/signup',
+    method: 'POST',
+    redirect: '/',
+    autoLogin: true
+  },
+  logoutData: {
+    url: 'auth/signout',
+    method: 'POST',
+    redirect: '/',
+    makeRequest: true
+  },
   fetchData:{
         url: 'user',
         method: 'GET',
