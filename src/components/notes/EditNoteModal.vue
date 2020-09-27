@@ -1,13 +1,8 @@
 <template>
-  <v-dialog v-model="dialog" max-width="600px">
-    <template v-slot:activator="{ on, attrs }">
-      <v-btn class="mx-6" color="primary" dark v-bind="attrs" v-on="on">
-        Add Note
-      </v-btn>
-    </template>
+  <v-dialog v-model="modal" max-width="600px">
     <v-card>
       <v-toolbar color="primary" dark flat>
-        <v-toolbar-title>Add Note</v-toolbar-title>
+        <v-toolbar-title>Edit Note</v-toolbar-title>
         <v-spacer></v-spacer>
       </v-toolbar>
       <v-card-text>
@@ -85,10 +80,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn
-          color="primary"
-          :disabled="!valid || loading || cropping"
-          @click="save"
+        <v-btn color="primary" :disabled="(!valid || loading || cropping)" @click="save"
           >Save</v-btn
         >
       </v-card-actions>
@@ -100,9 +92,9 @@
 <script>
 export default {
   name: "AddNoteModal",
-  props: ["afterSave", "note"],
+  props: ["afterSave","open"],
   data: () => ({
-    dialog: false,
+    modal: false,
     valid: false,
     loading: false,
     form: {
@@ -133,60 +125,52 @@ export default {
       } else {
         this.cropping = false;
       }
+    }
+  },
+  computed: {
+    passwordConfirmationRule() {
+      return () =>
+        this.form.password === this.form.repeat_password ||
+        "Passwords must match";
     },
-    note: function (note) {
-      if (note) {
-        this.form = { ...this.note, image: `${process.env.VUE_APP_IMAGES_URL}/notes/${note.image}` };
-      }
+    image_url() {
+      return this.form.image ? URL.createObjectURL(this.form.image) : "";
     },
-    computed: {
-      passwordConfirmationRule() {
-        return () =>
-          this.form.password === this.form.repeat_password ||
-          "Passwords must match";
-      },
-      image_url() {
-        return this.form.image ? URL.createObjectURL(this.form.image) : "";
-      },
-    },
-    methods: {
-      save() {
-        this.loading = true;
-        const formData = new FormData();
-        Object.keys(this.form).map((key) => {
-          formData.append(key, this.form[key]);
+  },
+  methods: {
+    save() {
+      this.loading = true;
+      const formData = new FormData();
+      Object.keys(this.form).map((key) => {
+        formData.append(key, this.form[key]);
+      });
+      this.$http
+        .post("/notes", formData)
+        .then(() => {
+          this.afterSave();
+          this.dialog = false;
+          this.form = {
+            title: "",
+            text: "",
+            image: null,
+          };
+         this.$refs.form.resetValidation()
+          this.loading = false;
+        })
+        .catch((error) => {
+          console.log(error);
+          this.loading = false;
         });
-        this.$http
-          .post("/notes", formData)
-          .then(() => {
-            this.afterSave();
-            this.dialog = false;
-            this.form = {
-              title: "",
-              text: "",
-              image: null,
-            };
-            this.$refs.form.resetValidation();
-            this.loading = false;
-          })
-          .catch((error) => {
-            console.log(error);
-            this.loading = false;
-          });
-      },
-      crop() {
+    },
+    crop() {
         this.$refs.cropper.getCroppedCanvas().toBlob((blob) => {
-          this.image = blob;
-          this.cropping = false;
-        });
-      },
-      rotate(rotationAngle) {
-        this.$refs.cropper.rotate(rotationAngle);
-        // this.$refs.cropper.rotate(rotationAngle);
-      },
-      getNoteImageUrl(image) {
-        return `${process.env.VUE_APP_IMAGES_URL}/notes/${image}`;
-      },
+        this.image = blob;
+        this.cropping = false;
+      });
+    },
+    rotate(rotationAngle) {
+      this.$refs.cropper.rotate(rotationAngle);
+      // this.$refs.cropper.rotate(rotationAngle);
     },
   },
 };
